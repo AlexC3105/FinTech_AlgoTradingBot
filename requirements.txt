@@ -11,7 +11,11 @@ plotly          # pip install plotly
 # Machine learning and time series analysis
 scikit-learn    # pip install scikit-learn
 tensorflow      # pip install tensorflow
+keras           # pip install keras
 statsmodels     # pip install statsmodels
+
+# Hyperparameter optimization
+scikit-optimize # pip install scikit-optimize
 
 # Backtesting and finance-specific libraries
 TA-Lib          # pip install TA-Lib
