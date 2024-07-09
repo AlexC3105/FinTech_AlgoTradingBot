@@ -1,14 +1,19 @@
 # Project Structure Overview
 
 ```
-Algo_Trading/
+FinTech_AlgoTradingBot/
 │
 ├── data/
-│   ├── historical_data/
-│   │   ├── btc_usd.csv
-│   │   ├── eth_usd.csv
-│   │   └── sol_usd.csv
-│   └── api_integration.py
+│   ├── BTC-USD.csv
+│   ├── ETH-USD.csv
+│   ├── SOL-USD.csv
+│   └── .ipynb_checkpoints/
+│       └── BTC-USD-checkpoint.csv
+│
+├── cleaned_data/
+│   ├── BTC_cleaned.csv
+│   ├── ETH_cleaned.csv
+│   ├── SOL_cleaned.csv
 │
 ├── notebooks/
 │   ├── 01_data_preparation.ipynb
@@ -16,7 +21,20 @@ Algo_Trading/
 │   ├── 03_model_generation.ipynb
 │   ├── 04_prediction_generation.ipynb
 │   ├── 05_backtesting.ipynb
-│   └── 06_visualization.ipynb
+│   ├── 06_visualization.ipynb
+│   ├── controller.ipynb
+│   ├── lstm_neural_network.ipynb
+│   ├── lstm_nn_predict.ipynb
+│   ├── main.ipynb
+│   └── .ipynb_checkpoints/
+│       ├── controller-checkpoint.ipynb
+│       ├── data_analysis-checkpoint.ipynb
+│       ├── data_prep-checkpoint.ipynb
+│       ├── lstm_neural_network-checkpoint.ipynb
+│       ├── lstm_nn_predict-checkpoint.ipynb
+│       ├── main-checkpoint.ipynb
+│       ├── neural_network-checkpoint.ipynb
+│       └── neuralnet-checkpoint.ipynb
 │
 ├── scripts/
 │   ├── utils.py
@@ -50,33 +68,41 @@ Algo_Trading/
 
 ## data/ Directory
 - **historical_data/**: This folder will store CSV files with historical data for different cryptocurrencies like Bitcoin, Ethereum, and Solana.
-  - **btc_usd.csv**: Historical data for Bitcoin to USD.
-  - **eth_usd.csv**: Historical data for Ethereum to USD.
-  - **sol_usd.csv**: Historical data for Solana to USD.
-- **api_integration.py**: This script is responsible for fetching data from various APIs. It pulls historical data for the specified cryptocurrencies and saves it to the historical_data folder.
+  - **BTC-USD.csv**: Historical data for Bitcoin to USD.
+  - **ETH-USD.csv**: Historical data for Ethereum to USD.
+  - **SOL-USD.csv**: Historical data for Solana to USD.
+
+## cleaned_data/ Directory
+- **BTC_cleaned.csv**: Cleaned data for Bitcoin to USD.
+- **ETH_cleaned.csv**: Cleaned data for Ethereum to USD.
+- **SOL_cleaned.csv**: Cleaned data for Solana to USD.
 
 ## notebooks/ Directory
 - **01_data_preparation.ipynb**: This notebook focuses on cleaning and preprocessing the raw historical data.
   - **Inputs**: CSV files from the historical_data folder.
-  - **Outputs**: Cleaned data ready for analysis, which might be saved back to the historical_data folder or another location.
+  - **Outputs**: Cleaned data ready for analysis, saved to the cleaned_data folder.
 - **02_data_analysis.ipynb**: This notebook analyzes the historical data to uncover trends and insights.
   - **Inputs**: Cleaned data from the data preparation notebook.
   - **Outputs**: Analytical findings and possibly some initial visualizations.
 - **03_model_generation.ipynb**: This notebook is where the trading models (e.g., machine learning models) are created and trained.
   - **Inputs**: Preprocessed data from the previous notebooks.
-  - **Outputs**: Trained models, which might be saved to the models folder.
+  - **Outputs**: Trained models, saved to the models folder.
 - **04_prediction_generation.ipynb**: This notebook generates predictions for future exchange rates using the trained models.
   - **Inputs**: Trained models and potentially new data for making predictions.
   - **Outputs**: Prediction results saved in the output_predictions folder.
 - **05_backtesting.ipynb**: This notebook tests the trading strategies using historical data to see how well they would have performed.
   - **Inputs**: Historical data and trading strategy logic.
-  - **Outputs**: Backtesting results, which might be saved to the results folder.
+  - **Outputs**: Backtesting results, saved to the results folder.
 - **06_visualization.ipynb**: This notebook creates visualizations to help understand the data and model performance.
   - **Inputs**: Data and results from other notebooks.
   - **Outputs**: Visualizations saved in the visualizations folder.
+- **controller.ipynb**: Manages the overall workflow and integrates various components of the project.
+- **lstm_neural_network.ipynb**: Builds and trains an LSTM neural network for time series prediction.
+- **lstm_nn_predict.ipynb**: Uses the trained LSTM model to make predictions.
+- **main.ipynb**: Main notebook that ties all parts of the project together.
 
 ## scripts/ Directory
-- **utils.py**: Contains utility functions that are used across different notebooks and scripts for tasks like data processing and manipulation.
+- **utils.py**: Contains utility functions used across different notebooks and scripts for tasks like data processing and manipulation.
 - **models.py**: Defines the various trading algorithms and models used in the project.
 - **interface.py**: A user interface script to make the tool more user-friendly, allowing users to interact with the models and data without diving into the code.
 - **backtesting.py**: Contains logic for backtesting trading strategies to evaluate their performance using historical data.
