@@ -44,6 +44,7 @@ y_test.to_csv('data/historical_data/y_test.csv')
 
 # Display model performance
 print(f"Model trained. R^2 score on training data: {model.score(X_test, y_test)}")
+
 """
 
 
@@ -51,6 +52,7 @@ print(f"Model trained. R^2 score on training data: {model.score(X_test, y_test)}
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
 import pandas as pd
+import joblib
 
 def train_model(data):
     """
@@ -61,7 +63,10 @@ def train_model(data):
     
     Returns:
     model: Trained machine learning model.
+    X_test: Test features.
+    y_test: Test labels.
     """
+    data = data.dropna()  # Drop any rows with missing values
     X = data[['Open', 'High', 'Low', 'Close', 'Volume']]
     y = data['Close'].shift(-1).dropna()
     X = X[:-1]
@@ -89,13 +94,20 @@ def make_prediction(model, data):
     return pd.Series(predictions, index=data.index)
 
 if __name__ == "__main__":
-    data = pd.read_csv('data/historical_data/btc_usd.csv', parse_dates=['Date'])
-    data.sort_values('Date', inplace=True)
+    data = pd.read_csv('data/historical_data/btc_usd.csv', parse_dates=['Date'], index_col='Date')
     
     model, X_test, y_test = train_model(data)
     predictions = make_prediction(model, data)
     
-    results = data[['Date', 'Close']].copy()
+    # Save the model and test data
+    joblib.dump(model, 'models/trained_model.pkl')
+    X_test.to_csv('data/historical_data/X_test.csv')
+    y_test.to_csv('data/historical_data/y_test.csv')
+    
+    # Save predictions
+    results = data[['Close']].copy()
     results['Predictions'] = predictions
-    results.to_csv('results/predictions.csv', index=False)
-    print(results)
+    results.to_csv('results/predictions.csv', index=True)
+    
+    print("Model trained and predictions saved.")
+    print(results.head())
