@@ -28,7 +28,7 @@ Having an interface script is essential for several reasons:
 import os
 from dotenv import load_dotenv
 import alpaca_trade_api as tradeapi
-from select_crypto_and_pull_data import fetch_data
+from scripts.api_integration import fetch_data
 
 def fetch_crypto_data():
     print("Select a cryptocurrency to fetch data for:")
@@ -65,6 +65,7 @@ if __name__ == "__main__":
     fetch_crypto_data()
     account_info = get_alpaca_account_info()
     print("Alpaca Account Info:", account_info)
+
 """
 
 
@@ -72,7 +73,7 @@ if __name__ == "__main__":
 import os
 from dotenv import load_dotenv
 import alpaca_trade_api as tradeapi
-from select_crypto_and_pull_data import fetch_data
+from scripts.api_integration import fetch_data
 
 def fetch_crypto_data():
     print("Select a cryptocurrency to fetch data for:")

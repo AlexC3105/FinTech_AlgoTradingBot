@@ -43,6 +43,7 @@ results.to_csv('results/backtest_results.csv')
 
 # Display backtest results
 results.head()
+
 """
 
 
@@ -80,7 +81,7 @@ def run_backtest(data, strategy, initial_cash=10000):
         
         portfolio_value = cash + (position * row['Close'])
         results.append({
-            'Date': row['Date'],
+            'Date': index,
             'Cash': cash,
             'Position': position,
             'Portfolio Value': portfolio_value
@@ -98,17 +99,28 @@ def example_strategy(row):
     Returns:
     str: 'buy', 'sell', or 'hold' signal.
     """
-    if row['Close'] < row['Close'].rolling(window=20).mean():
+    short_window = 40
+    long_window = 100
+    
+    if 'short_mavg' not in row.index or 'long_mavg' not in row.index:
+        return 'hold'
+
+    if row['short_mavg'] > row['long_mavg']:
         return 'buy'
-    elif row['Close'] > row['Close'].rolling(window=20).mean():
+    elif row['short_mavg'] < row['long_mavg']:
         return 'sell'
     else:
         return 'hold'
 
 if __name__ == "__main__":
     # Example usage
-    data = pd.read_csv('data/historical_data/btc_usd.csv', parse_dates=['Date'])
+    data = pd.read_csv('data/historical_data/btc_usd.csv', parse_dates=['Date'], index_col='Date')
     data.sort_values('Date', inplace=True)
+
+    # Calculate moving averages
+    data['short_mavg'] = data['Close'].rolling(window=40, min_periods=1).mean()
+    data['long_mavg'] = data['Close'].rolling(window=100, min_periods=1).mean()
+
     results = run_backtest(data, example_strategy)
     results.to_csv('results/backtest_results.csv', index=False)
-    print(results)
+    print(results.head())

@@ -36,6 +36,7 @@ data = load_data(data_path)
 
 # Display the first few rows of the data
 data.head()
+
 """
 
 
