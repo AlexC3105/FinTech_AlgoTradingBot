@@ -37,3 +37,4 @@ tqdm            # pip install tqdm
 ccxt            # pip install ccxt
 
 # To install all the required packages listed in the requirements.txt file, run the following command: pip install -r requirements.txt
+fpdf

@@ -57,9 +57,10 @@ def run_script(script_path):
     Args:
         script_path (str): The path to the Python script to execute.
     """
+    print(f"Running script: {script_path}")
     result = subprocess.run(['python', script_path])
     if result.returncode != 0:
-        raise Exception(f"Error executing script {script_path}")
+        raise Exception(f"Error executing script {script_path}: {result.stderr}")
 
 def main():
     try:
