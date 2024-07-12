@@ -66,6 +66,8 @@ if __name__ == "__main__":
 ```
 """
 
+
+
 import os
 from dotenv import load_dotenv
 import requests
@@ -106,7 +108,16 @@ def get_coinbase_data(currency_pair):
         "CB-ACCESS-KEY": COINBASE_API_KEY,
         "CB-ACCESS-SIGN": COINBASE_API_SECRET
     }
-    return fetch_api_data(url, headers)
+    data = fetch_api_data(url, headers)
+    if data and 'data' in data:
+        df = pd.DataFrame([data['data']])
+        df['time'] = pd.Timestamp.now()
+        df = df.rename(columns={
+            'amount': 'close'
+        })
+        return df[['time', 'close']]
+    else:
+        return None
 
 def get_alpha_vantage_data(symbol):
     """
@@ -193,13 +204,13 @@ if __name__ == "__main__":
         # Fetch and save Coinbase data
         currency_pair = f"{crypto}-USD"
         coinbase_data = get_coinbase_data(currency_pair)
-        save_data_to_csv(coinbase_data, f"data/historical_data/{crypto}_coinbase.csv")
+        save_data_to_csv(coinbase_data, f"data/historical_data/coinbase/{crypto}_coinbase.csv")
 
         # Fetch and save Alpha Vantage data
         alpha_vantage_data = get_alpha_vantage_data(crypto)
-        save_data_to_csv(alpha_vantage_data, f"data/historical_data/{crypto}_alpha_vantage.csv")
+        save_data_to_csv(alpha_vantage_data, f"data/historical_data/alpha_vantage/{crypto}_alpha_vantage.csv")
 
         # Fetch and save CryptoCompare data
         cryptocompare_data = get_cryptocompare_data(crypto, start_date, end_date)
-        save_data_to_csv(cryptocompare_data, f"data/historical_data/{crypto}_cryptocompare.csv")
+        save_data_to_csv(cryptocompare_data, f"data/historical_data/cryptocompare/{crypto}_cryptocompare_{start_date}_{end_date}.csv")
 

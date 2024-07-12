@@ -54,12 +54,13 @@ from sklearn.ensemble import RandomForestRegressor
 import pandas as pd
 import joblib
 
-def train_model(data):
+def train_model(data, features):
     """
     Train a machine learning model on historical data.
     
     Parameters:
     data (pd.DataFrame): Historical price data.
+    features (list): List of feature column names.
     
     Returns:
     model: Trained machine learning model.
@@ -67,7 +68,7 @@ def train_model(data):
     y_test: Test labels.
     """
     data = data.dropna()  # Drop any rows with missing values
-    X = data[['Open', 'High', 'Low', 'Close', 'Volume']]
+    X = data[features]
     y = data['Close'].shift(-1).dropna()
     X = X[:-1]
 
@@ -78,26 +79,28 @@ def train_model(data):
     
     return model, X_test, y_test
 
-def make_prediction(model, data):
+def make_prediction(model, data, features):
     """
     Make predictions using the trained model.
     
     Parameters:
     model: Trained machine learning model.
     data (pd.DataFrame): Data to make predictions on.
+    features (list): List of features to use for prediction.
     
     Returns:
     pd.Series: Predicted values.
     """
-    X = data[['Open', 'High', 'Low', 'Close', 'Volume']]
+    X = data[features]
     predictions = model.predict(X)
     return pd.Series(predictions, index=data.index)
 
 if __name__ == "__main__":
+    features = ['Open', 'High', 'Low', 'Volume']
     data = pd.read_csv('data/historical_data/btc_usd.csv', parse_dates=['Date'], index_col='Date')
     
-    model, X_test, y_test = train_model(data)
-    predictions = make_prediction(model, data)
+    model, X_test, y_test = train_model(data, features)
+    predictions = make_prediction(model, data, features)
     
     # Save the model and test data
     joblib.dump(model, 'models/trained_model.pkl')

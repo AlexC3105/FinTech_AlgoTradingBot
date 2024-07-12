@@ -112,15 +112,69 @@ def example_strategy(row):
     else:
         return 'hold'
 
+def momentum_strategy(row):
+    """
+    Momentum strategy function.
+    
+    Parameters:
+    row (pd.Series): A row of historical price data.
+    
+    Returns:
+    str: 'buy', 'sell', or 'hold' signal.
+    """
+    if 'returns' not in row.index:
+        return 'hold'
+    
+    # Buy if returns are positive, sell if returns are negative
+    if row['returns'] > 0:
+        return 'buy'
+    elif row['returns'] < 0:
+        return 'sell'
+    else:
+        return 'hold'
+
+def mean_reversion_strategy(row):
+    """
+    Mean reversion strategy function.
+    
+    Parameters:
+    row (pd.Series): A row of historical price data.
+    
+    Returns:
+    str: 'buy', 'sell', or 'hold' signal.
+    """
+    if 'z_score' not in row.index:
+        return 'hold'
+    
+    # Buy if the z-score is less than -1 (indicating the price is lower than the average)
+    # Sell if the z-score is greater than 1 (indicating the price is higher than the average)
+    if row['z_score'] < -1:
+        return 'buy'
+    elif row['z_score'] > 1:
+        return 'sell'
+    else:
+        return 'hold'
+
 if __name__ == "__main__":
     # Example usage
     data = pd.read_csv('data/historical_data/btc_usd.csv', parse_dates=['Date'], index_col='Date')
     data.sort_values('Date', inplace=True)
 
-    # Calculate moving averages
+    # Calculate moving averages for example strategy
     data['short_mavg'] = data['Close'].rolling(window=40, min_periods=1).mean()
     data['long_mavg'] = data['Close'].rolling(window=100, min_periods=1).mean()
 
-    results = run_backtest(data, example_strategy)
+    # Calculate returns for momentum strategy
+    data['returns'] = data['Close'].pct_change().fillna(0)
+
+    # Calculate z-score for mean reversion strategy
+    data['rolling_mean'] = data['Close'].rolling(window=20).mean()
+    data['rolling_std'] = data['Close'].rolling(window=20).std()
+    data['z_score'] = (data['Close'] - data['rolling_mean']) / data['rolling_std']
+
+    # Choose a strategy to run the backtest
+    strategy = example_strategy  # Replace with momentum_strategy or mean_reversion_strategy as needed
+
+    results = run_backtest(data, strategy)
     results.to_csv('results/backtest_results.csv', index=False)
     print(results.head())
