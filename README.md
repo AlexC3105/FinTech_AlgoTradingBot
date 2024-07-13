@@ -126,3 +126,33 @@ Create visual representations of the data and results with **06_visualization.ip
 Update **README.md** and create a project report (**project_report.pdf**) to document the project's methodology and findings.
 Summarize the project in a presentation (**Algo_Trading_Presentation.pptx**) for sharing with stakeholders.
 
+## Cloning the Repository and Setting Up:
+Follow these instructions to clone the repository, install dependencies, and set up the environment for the project.
+
+## Clone the Repository:
+```
+git clone git@github.com:AlexC3105/FinTech_AlgoTradingBot.git
+cd FinTech_AlgoTradingBot
+```
+
+## Install Dependencies:
+Make sure you have Python 3.8 or above installed. Then, install the required packages using pip:
+```
+pip install -r requirements.txt
+```
+
+## Add .env file:
+Create a .env file in the root directory of the project and add your API keys. The file should look like this:
+```
+ALPACA_API_KEY=your_alpaca_api_key
+ALPACA_SECRET_KEY=your_alpaca_secret_key
+YAHOO_FINANCE_API_KEY=your_yahoo_finance_api_key
+```
+
+## Running the Project:
+Navigate to the project directory and run the main script to start the entire workflow:
+```
+cd FinTech_AlgoTradingBot
+python run_all.py
+```
+These commands will set up the project and start the algorithmic trading bot. Ensure that you replace placeholder values in the .env file with your actual API keys.

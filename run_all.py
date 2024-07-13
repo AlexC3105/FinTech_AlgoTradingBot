@@ -38,6 +38,8 @@ python run_all.py
 
 
 import subprocess
+import os
+import curses
 
 def run_notebook(notebook_path):
     """
@@ -46,52 +48,146 @@ def run_notebook(notebook_path):
     Args:
         notebook_path (str): The path to the notebook file to execute.
     """
+    print(f"Running notebook: {notebook_path}")
     result = subprocess.run(['jupyter', 'nbconvert', '--to', 'notebook', '--execute', '--inplace', notebook_path])
     if result.returncode != 0:
         raise Exception(f"Error executing notebook {notebook_path}")
 
-def run_script(script_path):
+def run_script(script_path, *args):
     """
-    Execute a Python script.
+    Execute a Python script with arguments.
     
     Args:
         script_path (str): The path to the Python script to execute.
+        args: Additional arguments to pass to the script.
     """
-    print(f"Running script: {script_path}")
-    result = subprocess.run(['python', script_path])
+    command = ['python', script_path] + list(args)
+    print(f"Running script: {' '.join(command)}")
+    result = subprocess.run(command)
     if result.returncode != 0:
-        raise Exception(f"Error executing script {script_path}: {result.stderr}")
+        raise Exception(f"Error executing script {' '.join(command)}")
 
-def main():
+def curses_menu(stdscr, prompt, options):
+    """
+    Display a menu using curses and allow the user to select an option with arrow keys.
+    
+    Args:
+        stdscr: The curses window object.
+        prompt (str): The prompt message to display.
+        options (list): A list of options to display.
+    
+    Returns:
+        str: The selected option.
+    """
+    current_row = 0
+
+    def print_menu():
+        stdscr.clear()
+        stdscr.addstr(1, 2, prompt)
+        for idx, row in enumerate(options):
+            x = 2  # Fixed position to align text to the left
+            y = idx + 3  # Offset for menu items
+            if idx == current_row:
+                stdscr.attron(curses.color_pair(1))
+                stdscr.addstr(y, x, row)
+                stdscr.attroff(curses.color_pair(1))
+            else:
+                stdscr.addstr(y, x, row)
+        stdscr.refresh()
+
+    curses.curs_set(0)
+    stdscr.keypad(1)
+    curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
+
+    print_menu()
+    while True:
+        key = stdscr.getch()
+        if key == curses.KEY_UP and current_row > 0:
+            current_row -= 1
+        elif key == curses.KEY_DOWN and current_row < len(options) - 1:
+            current_row += 1
+        elif key == curses.KEY_ENTER or key in [10, 13]:
+            return options[current_row]
+        print_menu()
+
+def main(stdscr):
     try:
+        # Select cryptocurrency
+        cryptos = ['BTC - []', 'ETH - []', 'SOL - []', 'ALL - []']
+        crypto_prompt = "Please choose a cryptocurrency:"
+        crypto = curses_menu(stdscr, crypto_prompt, cryptos)
+        crypto = crypto.split(" ")[0]
+        
+        # Pull and clean data
+        stdscr.clear()
+        stdscr.addstr(2, 2, f"Pulling and cleaning data for {crypto}...")
+        stdscr.refresh()
+        run_script('scripts/select_crypto_and_pull_data.py', '--crypto', crypto)
+        
         # Data Preparation
-        print("Running data preparation notebook...")
+        stdscr.clear()
+        stdscr.addstr(2, 2, "Running data preparation notebook...")
+        stdscr.refresh()
         run_notebook('notebooks/01_data_preparation.ipynb')
         
         # Data Analysis
-        print("Running data analysis notebook...")
+        stdscr.clear()
+        stdscr.addstr(2, 2, "Running data analysis notebook...")
+        stdscr.refresh()
         run_notebook('notebooks/02_data_analysis.ipynb')
         
         # Model Training
-        print("Running model generation notebook...")
+        stdscr.clear()
+        stdscr.addstr(2, 2, "Running model generation notebook...")
+        stdscr.refresh()
         run_notebook('notebooks/03_model_generation.ipynb')
         
         # Prediction Generation
-        print("Running prediction generation notebook...")
+        stdscr.clear()
+        stdscr.addstr(2, 2, "Running prediction generation notebook...")
+        stdscr.refresh()
         run_notebook('notebooks/04_prediction_generation.ipynb')
         
         # Backtesting
-        print("Running backtesting notebook...")
+        stdscr.clear()
+        stdscr.addstr(2, 2, "Running backtesting notebook...")
+        stdscr.refresh()
         run_notebook('notebooks/05_backtesting.ipynb')
         
+        # Select strategy
+        strategies = ['STRAT - 1 []', 'STRAT - 2 []', 'STRAT - 3 []']
+        strategy_prompt = "Please choose a desired strategy:"
+        strategy = curses_menu(stdscr, strategy_prompt, strategies)
+        strategy = strategy.split(" ")[1]
+        
+        # Select investment amount
+        amounts = ['$100 - []', '$500 - []', '$1000 - []']
+        amount_prompt = "Please select an amount:"
+        amount = curses_menu(stdscr, amount_prompt, amounts)
+        amount = amount.split(" ")[0]
+        
+        # Run backtesting with selected strategy and amount
+        stdscr.clear()
+        stdscr.addstr(2, 2, f"Running backtesting for {crypto} with strategy {strategy} and investment amount {amount}...")
+        stdscr.refresh()
+        run_script('scripts/backtesting.py', '--crypto', crypto, '--strategy', strategy, '--amount', amount)
+        
         # Report Generation
-        print("Running report generation script...")
+        stdscr.clear()
+        stdscr.addstr(2, 2, "Running report generation script...")
+        stdscr.refresh()
         run_script('scripts/generate_report.py')
         
-        print("All steps executed successfully.")
+        stdscr.clear()
+        stdscr.addstr(2, 2, "All steps executed successfully.")
+        stdscr.refresh()
+        stdscr.getch()  # Wait for user to see the message
         
     except Exception as e:
-        print(f"An error occurred: {e}")
+        stdscr.clear()
+        stdscr.addstr(2, 2, f"An error occurred: {e}")
+        stdscr.refresh()
+        stdscr.getch()  # Wait for user to see the message
 
 if __name__ == "__main__":
-    main()
+    curses.wrapper(main)
