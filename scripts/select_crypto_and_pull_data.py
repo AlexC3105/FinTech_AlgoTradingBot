@@ -79,6 +79,7 @@ if __name__ == "__main__":
 import os
 import requests
 from dotenv import load_dotenv
+import argparse
 
 # Load environment variables from .env file
 load_dotenv()
@@ -103,22 +104,35 @@ def fetch_data(symbol, output_file):
     else:
         print(f"Failed to fetch data for {symbol}. Status code: {response.status_code}")
 
-if __name__ == "__main__":
+def handle_all():
+    """
+    Fetch data for all cryptocurrencies and save to respective CSV files.
+    """
     crypto_map = {
-        "1": ("BTC-USD", "data/historical_data/btc_usd.csv"),
-        "2": ("ETH-USD", "data/historical_data/eth_usd.csv"),
-        "3": ("SOL-USD", "data/historical_data/sol_usd.csv")
+        "BTC": ("BTC-USD", "data/historical_data/btc_usd.csv"),
+        "ETH": ("ETH-USD", "data/historical_data/eth_usd.csv"),
+        "SOL": ("SOL-USD", "data/historical_data/sol_usd.csv")
     }
+    
+    for symbol, (api_symbol, output_file) in crypto_map.items():
+        print(f"Fetching data for {api_symbol}...")
+        fetch_data(api_symbol, output_file)
 
-    print("Select a cryptocurrency to fetch data for:")
-    print("1: Bitcoin (BTC-USD)")
-    print("2: Ethereum (ETH-USD)")
-    print("3: Solana (SOL-USD)")
-    choice = input("Enter the number corresponding to the cryptocurrency: ")
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Fetch cryptocurrency data.')
+    parser.add_argument('--crypto', type=str, required=True, choices=['BTC', 'ETH', 'SOL', 'ALL'], help='The cryptocurrency symbol (e.g., BTC, ETH, SOL, ALL).')
+    
+    args = parser.parse_args()
+    
+    if args.crypto == 'ALL':
+        handle_all()
+    else:
+        crypto_map = {
+            "BTC": ("BTC-USD", "data/historical_data/btc_usd.csv"),
+            "ETH": ("ETH-USD", "data/historical_data/eth_usd.csv"),
+            "SOL": ("SOL-USD", "data/historical_data/sol_usd.csv")
+        }
 
-    if choice in crypto_map:
-        symbol, output_file = crypto_map[choice]
+        symbol, output_file = crypto_map[args.crypto]
         print(f"Fetching data for {symbol}...")
         fetch_data(symbol, output_file)
-    else:
-        print("Invalid choice. Please run the script again and select a valid option.")
