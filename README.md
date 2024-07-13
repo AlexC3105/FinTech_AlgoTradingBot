@@ -126,6 +126,8 @@ Create visual representations of the data and results with **06_visualization.ip
 Update **README.md** and create a project report (**project_report.pdf**) to document the project's methodology and findings.
 Summarize the project in a presentation (**Algo_Trading_Presentation.pptx**) for sharing with stakeholders.
 
+# Instalation and Setup
+
 ## Cloning the Repository and Setting Up:
 Follow these instructions to clone the repository, install dependencies, and set up the environment for the project.
 

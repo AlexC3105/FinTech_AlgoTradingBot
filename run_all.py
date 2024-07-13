@@ -41,31 +41,52 @@ import subprocess
 import os
 import curses
 
-def run_notebook(notebook_path):
+def run_notebook(stdscr, notebook_path):
     """
-    Execute a Jupyter notebook using nbconvert.
+    Execute a Jupyter notebook using nbconvert and display output in the curses window.
     
     Args:
+        stdscr: The curses window object.
         notebook_path (str): The path to the notebook file to execute.
     """
-    print(f"Running notebook: {notebook_path}")
-    result = subprocess.run(['jupyter', 'nbconvert', '--to', 'notebook', '--execute', '--inplace', notebook_path])
+    jupyter_path = "/opt/anaconda3/bin/jupyter" 
+    stdscr.addstr(f"Running notebook: {notebook_path[:curses.COLS-1]}\n")
+    stdscr.refresh()
+    result = subprocess.run([jupyter_path, 'nbconvert', '--to', 'notebook', '--execute', '--inplace', notebook_path], capture_output=True, text=True)
+    output_lines = result.stdout.split('\n')
+    for line in output_lines:
+        stdscr.addstr(line[:curses.COLS-1] + '\n')
+        stdscr.refresh()
     if result.returncode != 0:
-        raise Exception(f"Error executing notebook {notebook_path}")
+        error_lines = result.stderr.split('\n')
+        for line in error_lines:
+            stdscr.addstr(line[:curses.COLS-1] + '\n')
+            stdscr.refresh()
+        raise Exception(f"Error executing notebook {notebook_path}: {result.stderr}")
 
-def run_script(script_path, *args):
+def run_script(stdscr, script_path, *args):
     """
-    Execute a Python script with arguments.
+    Execute a Python script with arguments and display output in the curses window.
     
     Args:
+        stdscr: The curses window object.
         script_path (str): The path to the Python script to execute.
         args: Additional arguments to pass to the script.
     """
     command = ['python', script_path] + list(args)
-    print(f"Running script: {' '.join(command)}")
-    result = subprocess.run(command)
+    stdscr.addstr(f"Running script: {' '.join(command)[:curses.COLS-1]}\n")
+    stdscr.refresh()
+    result = subprocess.run(command, capture_output=True, text=True)
+    output_lines = result.stdout.split('\n')
+    for line in output_lines:
+        stdscr.addstr(line[:curses.COLS-1] + '\n')
+        stdscr.refresh()
     if result.returncode != 0:
-        raise Exception(f"Error executing script {' '.join(command)}")
+        error_lines = result.stderr.split('\n')
+        for line in error_lines:
+            stdscr.addstr(line[:curses.COLS-1] + '\n')
+            stdscr.refresh()
+        raise Exception(f"Error executing script {' '.join(command)}: {result.stderr}")
 
 def curses_menu(stdscr, prompt, options):
     """
@@ -83,16 +104,16 @@ def curses_menu(stdscr, prompt, options):
 
     def print_menu():
         stdscr.clear()
-        stdscr.addstr(1, 2, prompt)
+        stdscr.addstr(1, 2, prompt[:curses.COLS-1])
         for idx, row in enumerate(options):
             x = 2  # Fixed position to align text to the left
             y = idx + 3  # Offset for menu items
             if idx == current_row:
                 stdscr.attron(curses.color_pair(1))
-                stdscr.addstr(y, x, row)
+                stdscr.addstr(y, x, row[:curses.COLS-1])
                 stdscr.attroff(curses.color_pair(1))
             else:
-                stdscr.addstr(y, x, row)
+                stdscr.addstr(y, x, row[:curses.COLS-1])
         stdscr.refresh()
 
     curses.curs_set(0)
@@ -110,7 +131,34 @@ def curses_menu(stdscr, prompt, options):
             return options[current_row]
         print_menu()
 
+def run_controller_notebook(stdscr, crypto):
+    """
+    Run the controller notebook with the selected cryptocurrency.
+    
+    Args:
+        stdscr: The curses window object.
+        crypto (str): The selected cryptocurrency.
+    """
+    jupyter_path = "/opt/anaconda3/bin/jupyter" 
+    stdscr.addstr(f"Running controller notebook for {crypto}\n")
+    stdscr.refresh()
+    result = subprocess.run([jupyter_path, 'nbconvert', '--to', 'notebook', '--execute', '--inplace', 'notebooks/controller.ipynb'], capture_output=True, text=True, env={'CRYPTO': crypto})
+    output_lines = result.stdout.split('\n')
+    for line in output_lines:
+        stdscr.addstr(line[:curses.COLS-1] + '\n')
+        stdscr.refresh()
+    if result.returncode != 0:
+        error_lines = result.stderr.split('\n')
+        for line in error_lines:
+            stdscr.addstr(line[:curses.COLS-1] + '\n')
+            stdscr.refresh()
+        raise Exception(f"Error executing controller notebook for {crypto}: {result.stderr}")
+
 def main(stdscr):
+    curses.curs_set(0)
+    stdscr.keypad(1)
+    curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
+
     try:
         # Select cryptocurrency
         cryptos = ['BTC - []', 'ETH - []', 'SOL - []', 'ALL - []']
@@ -118,74 +166,57 @@ def main(stdscr):
         crypto = curses_menu(stdscr, crypto_prompt, cryptos)
         crypto = crypto.split(" ")[0]
         
-        # Pull and clean data
-        stdscr.clear()
-        stdscr.addstr(2, 2, f"Pulling and cleaning data for {crypto}...")
-        stdscr.refresh()
-        run_script('scripts/select_crypto_and_pull_data.py', '--crypto', crypto)
-        
-        # Data Preparation
-        stdscr.clear()
-        stdscr.addstr(2, 2, "Running data preparation notebook...")
-        stdscr.refresh()
-        run_notebook('notebooks/01_data_preparation.ipynb')
-        
-        # Data Analysis
-        stdscr.clear()
-        stdscr.addstr(2, 2, "Running data analysis notebook...")
-        stdscr.refresh()
-        run_notebook('notebooks/02_data_analysis.ipynb')
-        
-        # Model Training
-        stdscr.clear()
-        stdscr.addstr(2, 2, "Running model generation notebook...")
-        stdscr.refresh()
-        run_notebook('notebooks/03_model_generation.ipynb')
-        
-        # Prediction Generation
-        stdscr.clear()
-        stdscr.addstr(2, 2, "Running prediction generation notebook...")
-        stdscr.refresh()
-        run_notebook('notebooks/04_prediction_generation.ipynb')
-        
-        # Backtesting
-        stdscr.clear()
-        stdscr.addstr(2, 2, "Running backtesting notebook...")
-        stdscr.refresh()
-        run_notebook('notebooks/05_backtesting.ipynb')
-        
-        # Select strategy
-        strategies = ['STRAT - 1 []', 'STRAT - 2 []', 'STRAT - 3 []']
-        strategy_prompt = "Please choose a desired strategy:"
-        strategy = curses_menu(stdscr, strategy_prompt, strategies)
-        strategy = strategy.split(" ")[1]
-        
-        # Select investment amount
-        amounts = ['$100 - []', '$500 - []', '$1000 - []']
-        amount_prompt = "Please select an amount:"
-        amount = curses_menu(stdscr, amount_prompt, amounts)
-        amount = amount.split(" ")[0]
-        
-        # Run backtesting with selected strategy and amount
-        stdscr.clear()
-        stdscr.addstr(2, 2, f"Running backtesting for {crypto} with strategy {strategy} and investment amount {amount}...")
-        stdscr.refresh()
-        run_script('scripts/backtesting.py', '--crypto', crypto, '--strategy', strategy, '--amount', amount)
+        if crypto == "ALL":
+            # Fetch data for all cryptocurrencies
+            stdscr.clear()
+            stdscr.addstr(2, 2, "Fetching data for all cryptocurrencies...\n")
+            stdscr.refresh()
+            run_script(stdscr, 'scripts/select_crypto_and_pull_data.py', '--crypto', 'ALL')
+            # Run all notebooks if "ALL" is selected
+            notebooks = [
+                'notebooks/01_data_preparation.ipynb',
+                'notebooks/02_data_analysis.ipynb',
+                'notebooks/03_model_generation.ipynb',
+                'notebooks/04_prediction_generation.ipynb',
+                'notebooks/05_backtesting.ipynb',
+                'notebooks/06_visualization.ipynb',
+                'notebooks/lstm_neural_network.ipynb',
+                'notebooks/lstm_nn_predict.ipynb',
+                'notebooks/random_forest_model.ipynb',
+                'notebooks/rf_predict.ipynb'
+            ]
+            for notebook in notebooks:
+                stdscr.clear()
+                stdscr.addstr(2, 2, f"Running {notebook[:curses.COLS-1]}...\n")
+                stdscr.refresh()
+                run_notebook(stdscr, notebook)
+        else:
+            # Fetch data for selected cryptocurrency
+            stdscr.clear()
+            stdscr.addstr(2, 2, f"Fetching data for {crypto}\n")
+            stdscr.refresh()
+            run_script(stdscr, 'scripts/select_crypto_and_pull_data.py', '--crypto', crypto)
+            
+            # Run controller notebook
+            stdscr.clear()
+            stdscr.addstr(2, 2, f"Running controller notebook for {crypto}\n")
+            stdscr.refresh()
+            run_controller_notebook(stdscr, crypto)
         
         # Report Generation
         stdscr.clear()
-        stdscr.addstr(2, 2, "Running report generation script...")
+        stdscr.addstr(2, 2, "Running report generation script...\n")
         stdscr.refresh()
-        run_script('scripts/generate_report.py')
+        run_script(stdscr, 'scripts/generate_report.py')
         
         stdscr.clear()
-        stdscr.addstr(2, 2, "All steps executed successfully.")
+        stdscr.addstr(2, 2, "All steps executed successfully.\n")
         stdscr.refresh()
         stdscr.getch()  # Wait for user to see the message
         
     except Exception as e:
         stdscr.clear()
-        stdscr.addstr(2, 2, f"An error occurred: {e}")
+        stdscr.addstr(2, 2, f"An error occurred: {str(e)[:curses.COLS-1]}\n")
         stdscr.refresh()
         stdscr.getch()  # Wait for user to see the message
 
