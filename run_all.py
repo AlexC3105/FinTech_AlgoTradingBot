@@ -49,7 +49,7 @@ def run_notebook(stdscr, notebook_path):
         stdscr: The curses window object.
         notebook_path (str): The path to the notebook file to execute.
     """
-    jupyter_path = "/opt/anaconda3/bin/jupyter" 
+    jupyter_path = "/opt/anaconda3/bin/jupyter"  # Actual path to the jupyter executable
     stdscr.addstr(f"Running notebook: {notebook_path[:curses.COLS-1]}\n")
     stdscr.refresh()
     result = subprocess.run([jupyter_path, 'nbconvert', '--to', 'notebook', '--execute', '--inplace', notebook_path], capture_output=True, text=True)
@@ -139,7 +139,7 @@ def run_controller_notebook(stdscr, crypto):
         stdscr: The curses window object.
         crypto (str): The selected cryptocurrency.
     """
-    jupyter_path = "/opt/anaconda3/bin/jupyter" 
+    jupyter_path = "/opt/anaconda3/bin/jupyter"  # Actual path to the jupyter executable
     stdscr.addstr(f"Running controller notebook for {crypto}\n")
     stdscr.refresh()
     result = subprocess.run([jupyter_path, 'nbconvert', '--to', 'notebook', '--execute', '--inplace', 'notebooks/controller.ipynb'], capture_output=True, text=True, env={'CRYPTO': crypto})
